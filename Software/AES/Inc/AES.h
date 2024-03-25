@@ -1,0 +1,1 @@
+double app_main(uint32_t* text);

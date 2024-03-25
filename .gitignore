@@ -1,0 +1,5 @@
+logs/*
+*.txt
+Build/*
+.vscode/*
+Data/Power/'zip files'
