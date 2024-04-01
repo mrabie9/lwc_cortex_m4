@@ -149,9 +149,9 @@ void sync()
 uint32_t cycles_e, cycles_d;  /* number of cycles */
 int freq;
 
-void send_app_runtime()
+void send_app_runtime(float c)
 {
-  double time, discard;
+  float time, discard;
 
   // Sync with script
   send_serial(&time, 4);
@@ -159,8 +159,8 @@ void send_app_runtime()
   receive_serial(&discard, 4);
 
   // Send app runtime (seconds)
-  time = ((double)cycles) / freq; // L476 M4
-  send_serial(&time, 8);
+  time = (float)c / freq; 
+  send_serial(&time, 4);
 }
 
 void send_runtime(float c)
