@@ -15,14 +15,14 @@ import traceback
 
 # App name 
 algorithm = ''
-algorithms = ["ascon128", "ascon128a", "elephant160v2", "giftcofb128v1", "grain128aeadv2", "isapa128av20", "isapa128v20", "photonbeetleaead128rate128v1", "romulusn", "schwaemm256128v2", "schwaemm256256v2", "tinyjambu", "xoodyak"]
-#algorithms = ["ascon128"]
-rebuild = 1
+#algorithms = ["ascon128", "ascon128a", "elephant160v2", "giftcofb128v1", "grain128aeadv2", "isapa128av20", "isapa128v20", "photonbeetleaead128rate128v1", "romulusn", "schwaemm256128v2", "schwaemm256256v2", "tinyjambu", "xoodyak"]
+algorithms = ["ascon128"]
+rebuild = 0
 data_size = "12kB"
 wdir = r"C:\WSD030\m7_board\m4_board"
 
 # executable name, output size
-# exec_name,n_results = ("AES.elf", 1)
+# exec_name,n_results = ("AES.elf", 1)'
 
 # Serial number and port
 # sn, serial_port = ("066AFF574887534867083435", "/dev/tty.usbmodem11303") # TODO: Check
@@ -218,7 +218,7 @@ if rebuild:
 		register_log_clean.close()
 		os._exit(10)
 
-filename = wdir + "\exec_times_" + board + "_" + data_size + ".txt"
+filename = wdir + "\output_ver_" + board + "_" + data_size + ".txt"
 print(filename)
 f = open(filename, "w") # clear file first
 f.close()
