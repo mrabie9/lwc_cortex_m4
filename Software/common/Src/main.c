@@ -27,11 +27,11 @@
 // #include <api.h>
 
 #define ENCRYPT(a, b, c, d, e, f, g, h, i) crypto_aead_encrypt(a, b, c, d, e, f, g, h, i)
-#define DECRYPT(a, b, c, d, e, f, g, h, i) crypto_aead_decrypt(a, b, g, c, d, e, f, h, i)
+#define DECRYPT(a, b, c, d, e, f, g, h, i) crypto_aead_decrypt(a, b, c, d, e, f, g, h, i)
 
 #define MSG_SIZE INPUT_SIZE*4
 
-#define POWER_CONS
+// #define POWER_CONS
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
