@@ -71,43 +71,6 @@ static void MX_LPUART1_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void send_serial(uint8_t *data, int size)
-{
-
-  HAL_UART_Transmit(&hlpuart1, data, size, HAL_MAX_DELAY);
-}
-
-void receive_serial(uint8_t *data, int size)
-{
-
-  HAL_UART_Receive(&hlpuart1, data, size, HAL_MAX_DELAY);
-}
-
-// Sync controller and wrapper
-void sync()
-{
-  float zero = 0.0;
-  float one = 1.0;
-
-  // Sync
-  while (1)
-  {
-    float rec_zero;
-    receive_serial(&rec_zero, 4);
-
-    if (!(rec_zero == (float)0))
-    {
-      send_serial(&one, 4);
-      continue;
-    }
-    else
-    {
-      send_serial(&zero, 4);
-      break;
-    }
-  }
-}
-
 /* DWT (Data Watchpoint and Trace) registers, only exists on ARM Cortex with a DWT unit */
 #define KIN1_DWT_CONTROL (*((volatile uint32_t *)0xE0001000))
 /*!< DWT Control register */
@@ -145,6 +108,43 @@ void sync()
 #define KIN1_GetCycleCounter() \
   KIN1_DWT_CYCCNT
 /*!< Read cycle counter register */
+
+void send_serial(uint8_t *data, int size)
+{
+
+  HAL_UART_Transmit(&hlpuart1, data, size, HAL_MAX_DELAY);
+}
+
+void receive_serial(uint8_t *data, int size)
+{
+
+  HAL_UART_Receive(&hlpuart1, data, size, HAL_MAX_DELAY);
+}
+
+// Sync controller and wrapper
+void sync()
+{
+  float zero = 0.0;
+  float one = 1.0;
+
+  // Sync
+  while (1)
+  {
+    float rec_zero;
+    receive_serial(&rec_zero, 4);
+
+    if (!(rec_zero == (float)0))
+    {
+      send_serial(&one, 4);
+      continue;
+    }
+    else
+    {
+      send_serial(&zero, 4);
+      break;
+    }
+  }
+}
 
 uint32_t cycles_e, cycles_d;  /* number of cycles */
 int freq;
@@ -272,6 +272,7 @@ int main(void)
 		
 		for(int i=0;i<N_LOOP;i++)
 			output = ENCRYPT(c, clen, m, msglen, NULL, adlen, NULL, npub, k);
+      HAL_GPIO_TogglePin (LD2_GPIO_Port, LD2_Pin);
 		HAL_Delay(1000);
 
 
