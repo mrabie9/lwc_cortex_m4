@@ -146,7 +146,7 @@ void sync()
   KIN1_DWT_CYCCNT
 /*!< Read cycle counter register */
 
-uint32_t cycles; /* number of cycles */
+uint32_t cycles_e, cycles_d;  /* number of cycles */
 int freq;
 
 void send_app_runtime()
@@ -161,6 +161,17 @@ void send_app_runtime()
   // Send app runtime (seconds)
   time = ((double)cycles) / freq; // L476 M4
   send_serial(&time, 8);
+}
+
+void send_runtime(float c)
+{
+  float time, discard = 0;
+  time = (float)c / freq; 
+
+  // Sync with script
+  sync();
+  receive_serial(&discard, 4);
+  send_serial(&time, 4);
 }
 
 void send_output(double output)
@@ -259,21 +270,34 @@ int main(void)
 		KIN1_EnableCycleCounter(); /* start counting */
 
 		// Start application
-		//~ printf("Starting App\n");
-		output = DECRYPT(c, clen, m, msglen, NULL, adlen, NULL, npub, k);
+    // Encryption
+		output = ENCRYPT(c, clen, m, msglen, NULL, adlen, NULL, npub, k);
+		cycles_e = KIN1_GetCycleCounter(); /* get cycle counter */
+    
+    // Decryption
+    KIN1_ResetCycleCounter();  /* reset cycle counter */
+		KIN1_EnableCycleCounter(); /* start counting */
+    // DECRYPT(dm, mlen, NULL, c, ctlen, NULL, adlen, npub, k);
+    double decrypt = DECRYPT(dt, mlen, NULL, c, *clen, NULL, adlen, npub, k);
 
-		cycles = KIN1_GetCycleCounter(); /* get cycle counter */
+    cycles_d = KIN1_GetCycleCounter(); /* get cycle counter */
 
-		send_app_runtime();
+    // Checksum
+    int check_ind[5] = {29, 774, 226, 973, 2079};
+    for (int i=0;i<5;i++){
+      sum += (dt[check_ind[i]*4] - text[check_ind[i]]);
+    }
 
+		send_app_runtime(cycles_e);
+    send_runtime(cycles_d);
 		// Send output
-		send_output(output);
+		send_output(decrypt);
+    send_checksum(sum);
 		//~ HAL_Delay(1000);
 	
 	#endif
   }
-  KIN1_DisableCycleCounter();
-  /* USER CODE END 3 */
+   KIN1_DisableCycleCounter();
 }
 
 /**
