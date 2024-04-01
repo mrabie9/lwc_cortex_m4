@@ -184,6 +184,15 @@ void send_output(double output)
   send_serial(&output, 8);
 }
 
+void send_checksum(uint32_t output)
+{
+  float discard = 0;
+
+  // Sync with script
+  sync();
+  receive_serial(&discard, 4);
+  send_serial(&output, 1);
+}
 /* USER CODE END 0 */
 
 /**
@@ -218,8 +227,6 @@ int main(void)
   KIN1_InitCycleCounter(); /* enable DWT hardware */
   KIN1_EnableLockAccess();
   freq = HAL_RCC_GetSysClockFreq();
-
-  double output;
   
   #if CRYPTO_KEYBYTES==16
     volatile unsigned char key[CRYPTO_KEYBYTES] = {0xDEADBEEF, 0x01234567, 0x89ABCDEF, 0xDEADBEEF};
@@ -232,6 +239,9 @@ int main(void)
   volatile unsigned long long ctlen = 0;
   volatile unsigned char ct[MSG_SIZE + CRYPTO_ABYTES] = {0};
   volatile unsigned long long adlen = 0;
+
+  // decrypt check
+  volatile unsigned char dt[MSG_SIZE] = {0};
 
   // Declare pointers
   volatile unsigned char *c;
@@ -246,6 +256,10 @@ int main(void)
   clen = &ctlen;
   m = text;
   c = ct;
+  mlen=msglen;
+	
+  double output;
+  uint8_t sum = 0;
   HAL_GPIO_TogglePin (LD2_GPIO_Port, LD2_Pin);
 
   /* USER CODE END 2 */
