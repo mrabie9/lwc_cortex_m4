@@ -4,7 +4,7 @@
 
 ##### Project setup #####
 # Name of your current project
-PROJ_NAME = $(shell basename $(CURDIR))
+PROJ_NAME = $(shell basename "$(CURDIR)")
 BUILD_DIR = ../../Build
 #~ PROJ_NAME = ascon128
 

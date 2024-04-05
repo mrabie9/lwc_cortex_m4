@@ -3,7 +3,7 @@
 
 ##### Project setup #####
 # Name of your current project
-PROJ_NAME = $(shell basename $(CURDIR))
+PROJ_NAME = $(shell basename "$(CURDIR)")
 #~ PROJ_NAME = hello_world
 
 # Linker script for STM32xx Device 

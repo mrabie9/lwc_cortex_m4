@@ -1,6 +1,6 @@
 #!/bin/sh
 filename=$1
-wdir=C:/WSD030/m7_board/m4_board/Software
+wdir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/Software
 output_file=$filename.txt
 echo $output_file
 echo > $output_file # Overwrite once 
