@@ -256,7 +256,7 @@ int main(void)
   clen = &ctlen;
   m = text;
   c = ct;
-  mlen=msglen;
+  mlen=&msglen;
 	
   double output;
   uint8_t sum = 0;
