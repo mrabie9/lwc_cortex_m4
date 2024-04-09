@@ -5,7 +5,7 @@ output_file=$filename.txt
 echo $output_file
 echo > $output_file # Overwrite once 
 
-for app in AES ascon128 ascon128a elephant160v2 giftcofb128v1 grain128aeadv2 isapa128av20 isapa128v20 photonbeetleaead128rate128v1 romulusn schwaemm256128v2 schwaemm256256v2 tinyjambu xoodyak; do
+for app in ascon128 ascon128a elephant160v2 giftcofb128v1 grain128aeadv2 isapa128av20 isapa128v20 photonbeetleaead128rate128v1 romulusn schwaemm256128v2 schwaemm256256v2 tinyjambu xoodyak; do
 	echo "=============================== $app ===============================" >> $output_file
 	# echo "Cleaning $app"
 	make clean -C $wdir/"$app"
