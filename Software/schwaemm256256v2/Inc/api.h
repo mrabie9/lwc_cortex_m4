@@ -1,4 +1,4 @@
-#define N_LOOP 20
+#define N_LOOP 1000
 
 #define CRYPTO_KEYBYTES 32
 #define CRYPTO_NSECBYTES 0

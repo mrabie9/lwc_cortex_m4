@@ -6,4 +6,4 @@
 #define CRYPTO_NOOVERLAP 1
 #define ASCON_AEAD_RATE 16
 
-#define N_LOOP 20
+#define N_LOOP 1000

@@ -1,0 +1,9 @@
+Inc/round.h:8:24:ROR	48	static
+Inc/round.h:12:20:ROUND	328	static
+Inc/permutations.h:11:20:P12	16	static
+Inc/permutations.h:37:20:P6	16	static
+Inc/word.h:19:24:LOADBYTES	48	static
+Inc/word.h:29:20:STOREBYTES	40	static
+Inc/word.h:35:24:CLEARBYTES	56	static
+Src/aead.c:7:5:crypto_aead_encrypt	264	static
+Src/aead.c:89:5:crypto_aead_decrypt	320	static

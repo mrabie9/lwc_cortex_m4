@@ -32,7 +32,8 @@
 #define MSG_SIZE_B INPUT_SIZE*4 // message size in bytes
 #define MSG_SIZE_INT INPUT_SIZE // num of ints in message
 
-// #define POWER_CONS
+#define POWER_CONS
+// #define N_LOOP 5
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -250,7 +251,7 @@ int main(void)
 	
   double output;
   uint8_t sum = 0;
-  HAL_GPIO_TogglePin (LD2_GPIO_Port, LD2_Pin);
+  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
   uint32_t err_c = 0;
   /* USER CODE END 2 */
 
@@ -259,12 +260,15 @@ int main(void)
   while (1)
   {
 	#ifdef POWER_CONS
-		
+		HAL_Delay(2000);
 		for(int i=0;i<N_LOOP;i++)
-			output = ENCRYPT(c, clen, m, msglen, NULL, adlen, NULL, npub, k);
-      HAL_GPIO_TogglePin (LD2_GPIO_Port, LD2_Pin);
-		HAL_Delay(1000);
-
+			ENCRYPT(c, clen, m, msglen, NULL, adlen, NULL, npub, k);
+    HAL_Delay(3000);
+		for(int i=0;i<N_LOOP;i++)
+			DECRYPT(dt, mlen, NULL, c, *clen, NULL, adlen, npub, k);
+    
+    // HAL_GPIO_TogglePin (LD2_GPIO_Port, LD2_Pin);
+	
 
 	#else
     float discard;

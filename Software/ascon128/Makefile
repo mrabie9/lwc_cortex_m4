@@ -60,7 +60,7 @@ clean:
 	rm -f $(BUILD_DIR)/$(PROJ_NAME).bin $(BUILD_DIR)/$(PROJ_NAME).hex $(BUILD_DIR)/$(PROJ_NAME).elf $(BUILD_DIR)/$(PROJ_NAME).o
 
 $(PROJ_NAME).elf: $(SRC_FILES) 
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $^ -DSTM32L496xx -Wl,--print-memory-usage
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
 	$(SZ) $(BUILD_DIR)/$@
 	
 assembly: 

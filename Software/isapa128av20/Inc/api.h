@@ -8,6 +8,6 @@
 #define CRYPTO_ABYTES 16
 #define CRYPTO_NOOVERLAP 1
 
-#define N_LOOP 5
+#define N_LOOP 500
 
 #endif

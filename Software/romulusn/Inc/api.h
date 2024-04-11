@@ -1,4 +1,4 @@
-#define N_LOOP 1
+#define N_LOOP 50
 
 // AEAD defines
 #define CRYPTO_KEYBYTES 16

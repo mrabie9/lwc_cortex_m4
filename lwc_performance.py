@@ -195,7 +195,6 @@ for x in algorithms:
 		nucleo.timeout = apprun
 		# time.sleep(.5)
 		nucleo.read(4)
-		print("rec")
 		nucleo.timeout = 2
 
 		runtime_py = round(time.time() - campaign_start_time, 6)
@@ -241,7 +240,7 @@ for x in algorithms:
 				
 		print("Output E: ", output_e)
 		print("Output D: ", output_d)
-		print("Err Cnt: ", sum)
+		print("Err Cnt:  ", sum)
 		f.write("Output:\t\t\t%.1f\n\t" % output_e)
 		f.write("Err Cnt:\t\t%.1f\n\t" % sum)
 		countdown_to_reset = 5
