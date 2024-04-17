@@ -33,7 +33,6 @@
 #define MSG_SIZE_INT INPUT_SIZE // num of ints in message
 
 #define POWER_CONS
-// #define N_LOOP 5
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -260,14 +259,42 @@ int main(void)
   while (1)
   {
 	#ifdef POWER_CONS
-		HAL_Delay(2000);
-		for(int i=0;i<N_LOOP;i++)
-			ENCRYPT(c, clen, m, msglen, NULL, adlen, NULL, npub, k);
-    HAL_Delay(3000);
-		for(int i=0;i<N_LOOP;i++)
-			DECRYPT(dt, mlen, NULL, c, *clen, NULL, adlen, npub, k);
+    // Sync before app execution
+    // HAL_Delay(10000);
+		// sync();
+    float discard;
+    double encrypt, decrypt;
+    // HAL_Delay(2000);
+    HAL_UART_Receive(&hlpuart1, &discard, 4, 2000);
+    // KIN1_ResetCycleCounter();  /* reset cycle counter */
+		// KIN1_EnableCycleCounter(); /* start counting */
     
-    // HAL_GPIO_TogglePin (LD2_GPIO_Port, LD2_Pin);
+		for(int i=0;i<N_LOOP;i++)
+			encrypt = ENCRYPT(c, clen, m, msglen, NULL, adlen, NULL, npub, k);
+    // cycles_e = KIN1_GetCycleCounter(); /* get cycle counter */
+    HAL_UART_Receive(&hlpuart1, &discard, 4, 3000);
+    // KIN1_ResetCycleCounter();  /* reset cycle counter */
+		// KIN1_EnableCycleCounter(); /* start counting */
+
+		for(int i=0;i<N_LOOP;i++)
+		  decrypt = DECRYPT(dt, mlen, NULL, c, *clen, NULL, adlen, npub, k);
+    // cycles_d = KIN1_GetCycleCounter(); /* get cycle counter */
+    // HAL_Delay(2000);  
+    // Checksum
+    // uint32_t dt_int;
+    // for (int i=0;i<MSG_SIZE_INT;i++){
+    //   dt_int = dt[i*4] | (dt[i*4 + 1] << 8) | (dt[i*4 +2] << 16) | (dt[i*4 +3] << 24);
+    //   if (dt_int != text[i])
+    //     err_c += 1;
+    // }
+    
+    send_serial(&discard, 4);
+    // Send data
+		send_app_runtime(cycles_e);
+    send_runtime(cycles_d);
+    send_output(encrypt);
+		send_output(decrypt);
+    send_uint32(err_c);
 	
 
 	#else
@@ -302,13 +329,12 @@ int main(void)
     }
 
     send_serial(&discard, 4);
+    // Send data
 		send_app_runtime(cycles_e);
     send_runtime(cycles_d);
-		// Send output
     send_output(encrypt);
 		send_output(decrypt);
     send_uint32(err_c);
-		//~ HAL_Delay(1000);
 	
 	#endif
   }

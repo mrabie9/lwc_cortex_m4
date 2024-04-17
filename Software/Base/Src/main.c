@@ -300,6 +300,8 @@ int main(void)
     send_output(encrypt);
 		send_output(decrypt);
     send_uint32(err_c);
+	send_uint32(dt);
+	send_uint32(text);
 		//~ HAL_Delay(1000);
 	
 	#endif

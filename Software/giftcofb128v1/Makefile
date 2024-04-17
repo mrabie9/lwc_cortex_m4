@@ -60,14 +60,21 @@ clean:
 	rm -f $(BUILD_DIR)/$(PROJ_NAME).bin $(BUILD_DIR)/$(PROJ_NAME).hex $(BUILD_DIR)/$(PROJ_NAME).elf $(BUILD_DIR)/$(PROJ_NAME).o
 
 $(PROJ_NAME).elf: $(SRC_FILES) 
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $^ -DSTM32L496xx -Wl,--print-memory-usage
-	$(SZ) $(BUILD_DIR)/$@
+	$(CC) -O3 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_O3.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	$(CC) -O2 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_O2.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	$(CC) -Os $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_Os.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	$(CC) -O0 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_O0.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_O3.elf
+	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_O2.elf
+	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_Os.elf
+	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_O0.elf
+	
 	
 assembly: 
-	$(CC) -S -fverbose-asm $(CFLAGS) Src/encrypt.c -o $(BUILD_DIR)/Assembly/giftcenc.s # output verbose assembly
-
+	$(CC) -S -fverbose-asm $(CFLAGS) Src/aead.c -o $(BUILD_DIR)/Assembly/asconaead.s # output verbose assembly
+	
 #$(PROJ_NAME).elf: $(SRC_FILES) $(PROJ_NAME).o
-#	$(CC) $(CFLAGS) -o $@ $^ #Src/$(PROJ_NAME)-$(SUFIX).o
+#	$(CC) -O3 $(CFLAGS)  -o $@ $^ #Src/$(PROJ_NAME)-$(SUFIX).o
 
 #$(PROJ_NAME).o: $(PROJ_NAME).c
 #	$(CLANG) --target=arm-none-eabi -mcpu=cortex-m4 -mfloat-abi=soft -mthumb -mlittle-endian -IInc -I/soft64/cross/gcc/gcc-arm-none-eabi-10.3/arm-none-eabi/include/ -fshort-enums -DKEY=$(KEY) -DDEBUG $(EXTRA_FLAGS) -c -o $@ $<
