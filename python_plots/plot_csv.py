@@ -5,6 +5,7 @@ import os
 import time
 from natsort import natsorted
 import openpyxl as xl
+from enum import Enum
 
 global x_start_e, x_stop_e, x_start_d, x_stop_d, n_loop, energy_e, energy_d
 global i_e_max, i_e_avg, i_e_min, i_d_max, i_d_avg, i_d_min, n_calibrated, t_calibrations
@@ -19,35 +20,215 @@ variables = ['n_loop', 'Average encryption time', 'Average decryption time', 'Av
 # values = [n_loop, t_avg_e, t_avg_d,  energy_e, energy_d,
 #           i_e_max, i_e_avg, i_e_min, i_d_max, i_d_avg, i_d_min, n_calibrated,', '.join(map(str, t_calibrations))]
 
-data_dir = "../Data/Power/python_plots/02_csv_dir/ascon128_enc_dec_1000x/"
-output = "../Data/Power/python_plots/00_Output/ascon128_enc_dec_1000x.txt"
 
-data_obtained = True
-energy_calc = True
+# Contains column value for the AUT
+class AUT(Enum):
+    ascon128_enc_dec_1000x = 3
+    ascon128Armv7_enc_dec_1000x = 4
+    ascon128a_enc_dec_1000x = 5
+    ascon128aArmv7_enc_dec_1000x = 6
+    isapa128_enc_dec_500x = 7
+    isapa128Armv7_enc_dec_500x = 8
+    isapa128a_enc_dec_500x = 9
+    isapa128aArmv7_enc_dec_500x = 10
+    sparkle128_enc_dec_1000x = 11
+    sparkle128Armv7_enc_dec_1000x = 12
+    sparkle256_enc_dec_1000x = 13
+    sparkle256Armv7_enc_dec_1000x = 14
+    tinyjambu_enc_dec_1000x = 15
+    tinyjambuOpt_enc_dec_1000x = 16
+    giftc_enc_dec_200x = 17
+    xoodyak_enc_dec_1000x = 18
+    romulusn_enc_dec_50x = 19
+    romulusnOpt_enc_dec_50x = 20
+    eleph_enc_dec_10x = 21
+    grain_enc_dec_10x = 22
+    photon_enc_dec_15x = 23
+
+# Start col for xlsx write
+col = AUT.ascon128_enc_dec_1000x.value 
 
 # Start/end times dict
+# data_obtained = False#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#False
+# energy_calc = False#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#False
+# data_dir = "../Data/Power/python_plots/02_csv_dir/02_run2/O0/ascon128a2_enc_dec_1000x/"
+# output = "../Data/Power/python_plots/00_Output/02_run2/O0/ascon128a2_enc_dec_1000x.txt"
+# timestamps = {
+#     ## O0 
+#     # 'ascon128_enc_dec_1000x': {'start_e': 1.096410, 'stop_e':183.097190 , 'start_d': 186.102970, 'stop_d':368.140520},
+#     # 'ascon128a_enc_dec_1000x': {'start_e': 0.868760, 'stop_e':126.672980, 'start_d': 129.678520 , 'stop_d':255.602330},
+#     # 'giftc_enc_dec_200x': {'start_e': 0.979360, 'stop_e': 234.564920, 'start_d': 237.570210, 'stop_d': 471.166760},
+#     # 'isapa128_enc_dec_500x': {'start_e': 1.106770, 'stop_e': 336.044850 , 'start_d': 339.051670, 'stop_d': 674.354140},
+#     # 'isapa128a_enc_dec_500x': {'start_e': 1.095630, 'stop_e': 263.663310, 'start_d': 266.669700 , 'stop_d': 529.252050},
+#     # 'sparkle128_enc_dec_1000x': {'start_e': 1.064100, 'stop_e': 84.239800, 'start_d': 87.245910, 'stop_d': 171.738190},
+#     # 'sparkle256_enc_dec_1000x': {'start_e': 1.142160, 'stop_e': 116.325410, 'start_d': 119.331090, 'stop_d': 235.864220 },
+#     # 'tinyjambu_enc_dec_1000x': {'start_e': 1.019490, 'stop_e': 158.006720, 'start_d': 161.009910, 'stop_d': 318.775550},
+#     # 'xoodyak_enc_dec_1000x': {'start_e': 1.34246, 'stop_e': 282.81752, 'start_d': 285.82417, 'stop_d':  567.05898},
+#     # 'eleph_enc_dec_10x': {'start_e': 5.469650, 'stop_e': 227.465460, 'start_d': 230.472160, 'stop_d': 452.353150 },
+#     # 'grain_enc_dec_10x': {'start_e': 1.445850, 'stop_e': 183.564560, 'start_d': 186.567760, 'stop_d': 366.392920},
+#     # 'photon_enc_dec_15x': {'start_e': 1.13041, 'stop_e': 203.55816, 'start_d': 206.56335, 'stop_d':409.04147},
+#     # 'romulusn_enc_dec_50x': {'start_e': 1.180800, 'stop_e': 182.506460, 'start_d': 185.512820, 'stop_d': 367.872190},
+# }
+data_obtained = True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#False
+energy_calc = True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#False
+# data_dir = "../Data/Power/python_plots/02_csv_dir/02_run2/O0/isapa128a_enc_dec_500x/"
+# output = "../Data/Power/python_plots/00_Output/02_run2/O0/isapa128a_enc_dec_500x.txt"
+row = 3
 timestamps = {
-    'ascon128_enc_dec_1000x': {'start_e': 1.096410, 'stop_e':183.097190 , 'start_d': 186.102970, 'stop_d':368.140520},
-    'ascon128a_enc_dec_1000x': {'start_e': 0.868760, 'stop_e':126.672980, 'start_d': 129.678520 , 'stop_d':255.602330},
-    'giftc_enc_dec_200x': {'start_e': 0.979360, 'stop_e': 234.564920, 'start_d': 237.570210, 'stop_d': 471.166760},
-    'isapa128_enc_dec_500x': {'start_e': 1.106770, 'stop_e': 336.044850 , 'start_d': 339.051670, 'stop_d': 674.354140},
-    'isapa128a_enc_dec_500x': {'start_e': 1.095630, 'stop_e': 263.663310, 'start_d': 266.669700 , 'stop_d': 529.252050},
-    'sparkle128_enc_dec_1000x': {'start_e': 1.064100, 'stop_e': 84.239800, 'start_d': 87.245910, 'stop_d': 171.738190},
-    'sparkle256_enc_dec_1000x': {'start_e': 1.142160, 'stop_e': 116.325410, 'start_d': 119.331090, 'stop_d': 235.864220 },
-    'tinyjambu_enc_dec_1000x': {'start_e': 1.019490, 'stop_e': 158.006720, 'start_d': 161.009910, 'stop_d': 318.775550},
-    'xoodyak_enc_dec_1000x': {'start_e': 1.180800, 'stop_e': 182.506460, 'start_d': 185.512820, 'stop_d': 367.872190 },
-    'eleph_enc_dec_10x': {'start_e': 5.469650, 'stop_e': 227.465460, 'start_d': 230.472160, 'stop_d': 452.353150 },
-    'grain_enc_dec_10x': {'start_e': 1.445850, 'stop_e': 183.564560, 'start_d': 186.567760, 'stop_d': 366.392920},
-    'photon_enc_dec_15x': {'start_e': 1.13041, 'stop_e': 203.55816, 'start_d': 206.56335, 'stop_d':409.04147},
-    'romulusn_enc_dec_50x': {'start_e': 1.180800, 'stop_e': 182.506460, 'start_d': 185.512820, 'stop_d': 367.872190},
+    ## Run 2 start: O0 (with sync) 
+    # 'O0': {
+    #     'row' : 3,
+    #     'ascon128_enc_dec_1000x': {'start_e': 1.35464, 'stop_e': 183.32447, 'start_d': 186.32992, 'stop_d': 368.37830},
+    #     'ascon128a_enc_dec_1000x': {'start_e': 1.37838, 'stop_e': 127.13827, 'start_d': 130.14297, 'stop_d': 256.05088},
+    #     'isapa128_enc_dec_500x': {'start_e': 1.27187, 'stop_e': 336.41365, 'start_d': 339.41733, 'stop_d': 674.50535},
+    #     'isapa128a_enc_dec_500x': {'start_e': 1.29430, 'stop_e': 263.7350, 'start_d': 266.73994, 'stop_d': 529.2357},
+    #     'sparkle128_enc_dec_1000x': {'start_e': 1.19860, 'stop_e': 84.34733, 'start_d': 87.35280, 'stop_d': 171.83800},
+    #     'sparkle256_enc_dec_1000x':{'start_e': 1.30745, 'stop_e': 116.48676, 'start_d': 119.49210, 'stop_d': 236.04129},
+    #     'tinyjambu_enc_dec_1000x': {'start_e': 1.27229, 'stop_e': 159.12436, 'start_d': 162.12985, 'stop_d': 320.05205},
+    #     'giftc_enc_dec_200x':{'start_e': 1.28366, 'stop_e': 234.75802, 'start_d': 237.76210, 'stop_d': 471.14448},
+    #     'xoodyak_enc_dec_1000x': {'start_e': 1.22420, 'stop_e': 282.73972, 'start_d': 285.74527, 'stop_d': 566.93847},
+    #     'romulusn_enc_dec_50x': {'start_e': 1.16678, 'stop_e': 183.72276, 'start_d': 186.73369, 'stop_d': 369.45473}
+    #     'eleph_enc_dec_10x': {'start_e': 1.32715, 'stop_e': 223.14892, 'start_d': 226.15294, 'stop_d': 448.04365},
+    #     'grain_enc_dec_10x': {'start_e': 1.21045, 'stop_e': 183.78595, 'start_d': 186.7954, 'stop_d': 367.01580},
+    #     'photon_enc_dec_15x': {'start_e': 1.26331, 'stop_e': 203.95343, 'start_d': 206.96480, 'stop_d': 409.72025},
+    # },
 
-    ### 'Random' second sets
-    # 'photon2_enc_dec_15x': {'start_e': 0.78681, 'stop_e': 202.93627, 'start_d': 205.93713, 'stop_d': 407.90221},
-    # 'ascon128a_ngnd_enc_dec_1000x': {'start_e': 0., 'stop_e': , 'start_d': , 'stop_d': }
-    }
+    'O2': {
+        'row' : 20,
+        'ascon128_enc_dec_1000x': {'start_e': 1.32980, 'stop_e': 36.96500, 'start_d': 39.97337, 'stop_d': 75.42982},
+        'ascon128Armv7_enc_dec_1000x': {'start_e': 1.41271, 'stop_e': 27.90305, 'start_d': 30.90838, 'stop_d': 57.30829},
+        'ascon128a_enc_dec_1000x': {'start_e': 1.33708, 'stop_e': 27.43752, 'start_d': 30.44534, 'stop_d': 56.61588},
+        'ascon128aArmv7_enc_dec_1000x':{'start_e': 1.35539, 'stop_e': 18.93792, 'start_d': 21.94486, 'stop_d': 39.41609},
+        'isapa128_enc_dec_500x': {'start_e': 1.22425, 'stop_e': 72.29740, 'start_d': 75.30481, 'stop_d': 146.38173},
+        'isapa128Armv7_enc_dec_500x': {'start_e': 1.45076, 'stop_e': 46.52175, 'start_d': 49.52730, 'stop_d': 94.60091},
+        'isapa128a_enc_dec_500x': {'start_e': 1.28838, 'stop_e': 63.50118, 'start_d': 66.50847, 'stop_d': 128.72280},
+        'isapa128aArmv7_enc_dec_500x': {'start_e': 1.38490, 'stop_e': 33.95361, 'start_d': 36.95904, 'stop_d': 69.53307},
+        'sparkle128_enc_dec_1000x': {'start_e': 1.33705, 'stop_e': 16.94720, 'start_d': 19.95426, 'stop_d': 36.23320},
+        'sparkle128Armv7_enc_dec_1000x': {'start_e': 1.47810, 'stop_e': 12.55021, 'start_d': 15.55501, 'stop_d': 26.62793},
+        'sparkle256_enc_dec_1000x':{'start_e': 1.21061, 'stop_e': 22.15091, 'start_d': 25.15783, 'stop_d': 46.61738},
+        'sparkle256Armv7_enc_dec_1000x': {'start_e': 1.37846, 'stop_e': 18.40788, 'start_d': 21.41232, 'stop_d': 38.41758},
+        'tinyjambu_enc_dec_1000x': {'start_e': 1.30960, 'stop_e': 40.70770, 'start_d': 43.70199, 'stop_d': 83.04224},
+        'tinyjambuOpt_enc_dec_1000x': {'start_e': 1.40447, 'stop_e': 25.60081, 'start_d': 28.60497, 'stop_d': 52.72808},
+        'giftc_enc_dec_200x':{'start_e': 1.33015, 'stop_e': 83.28543, 'start_d': 86.29315, 'stop_d': 168.29000},
+        'xoodyak_enc_dec_1000x': {'start_e': 1.14605, 'stop_e': 75.25774, 'start_d': 78.26672, 'stop_d': 152.21332},
+        'romulusn_enc_dec_50x': {'start_e': 2.00606, 'stop_e': 30.47147, 'start_d': 33.48210, 'stop_d': 61.99735},
+        'romulusnOpt_enc_dec_50x': {'start_e': 1.33416, 'stop_e': 6.05559, 'start_d': 9.06258, 'stop_d': 13.77557},
+        'eleph_enc_dec_10x': {'start_e': 1.16114, 'stop_e': 53.6765, 'start_d': 56.68451, 'stop_d': 109.20734 },
+        'grain_enc_dec_10x': {'start_e': 1.22906, 'stop_e': 45.16622, 'start_d': 48.17469, 'stop_d': 91.87389},
+        'photon_enc_dec_15x': {'start_e': 1.17107, 'stop_e': 69.71969, 'start_d': 72.72957, 'stop_d': 141.30102},
+    },
 
+    'O3':{
+        ## O3 (with sync)
+        'row' : 37,
+        'ascon128_enc_dec_1000x': {'start_e': 1.61527, 'stop_e': 32.52472, 'start_d': 35.53011, 'stop_d': 66.53474},
+        'ascon128Armv7_enc_dec_1000x': {'start_e': 1.38153, 'stop_e': 27.83631, 'start_d': 30.84171, 'stop_d': 57.19952},
+        'ascon128a_enc_dec_1000x': {'start_e': 1.32484, 'stop_e': 22.90531, 'start_d': 25.91182, 'stop_d': 47.10141}, 
+        'ascon128aArmv7_enc_dec_1000x':{'start_e': 1.48811, 'stop_e': 19.07184, 'start_d': 22.07951, 'stop_d': 39.55043},
+        'isapa128_enc_dec_500x': {'start_e': 1.35027, 'stop_e': 50.71819, 'start_d': 53.72424, 'stop_d': 103.09404},
+        'isapa128Armv7_enc_dec_500x': {'start_e': 1.20896, 'stop_e': 46.11353, 'start_d': 49.11976, 'stop_d': 94.02679},
+        'isapa128a_enc_dec_500x': {'start_e': 1.40207, 'stop_e': 42.20895, 'start_d': 45.21585, 'stop_d': 86.02839},
+        'isapa128aArmv7_enc_dec_500x': {'start_e': 1.44101, 'stop_e': 33.81900, 'start_d': 36.82403, 'stop_d': 69.11772},
+        'sparkle128_enc_dec_1000x': {'start_e': 1.18393, 'stop_e': 17.27858, 'start_d': 20.28510, 'stop_d': 37.15058}, 
+        'sparkle128Armv7_enc_dec_1000x': {'start_e': 1.39177, 'stop_e': 12.58562, 'start_d': 15.59153, 'stop_d': 26.78508},
+        'sparkle256_enc_dec_1000x':{'start_e': 0.99120, 'stop_e': 33.05594, 'start_d': 36.06287, 'stop_d': 68.77249},
+        'sparkle256Armv7_enc_dec_1000x': {'start_e': 1.41073, 'stop_e': 18.66018, 'start_d': 21.66667, 'stop_d': 38.93965},
+        'tinyjambu_enc_dec_1000x': {'start_e': 1.36392, 'stop_e': 33.29568, 'start_d': 36.30292, 'stop_d': 68.35199},
+        'tinyjambuOpt_enc_dec_1000x': {'start_e': 1.45441, 'stop_e': 25.60803, 'start_d': 28.61335, 'stop_d': 52.76988},
+        'xoodyak_enc_dec_1000x': {'start_e': 1.44806, 'stop_e': 33.57857, 'start_d': 36.58487, 'stop_d': 68.34107},
+        'giftc_enc_dec_200x': {'start_e': 1.32349, 'stop_e': 93.03627, 'start_d': 96.04343, 'stop_d': 187.75343},
+        'romulusn_enc_dec_50x': {'start_e': 1.25101, 'stop_e': 20.42448, 'start_d': 23.43189, 'stop_d': 42.62002},
+        'romulusnOpt_enc_dec_50x': {'start_e': 1.44879, 'stop_e': 6.17670, 'start_d': 9.18398, 'stop_d': 13.89927},
+        'eleph_enc_dec_10x': {'start_e': 1.34278, 'stop_e': 36.84270, 'start_d': 39.84887, 'stop_d': 75.34979},
+        'grain_enc_dec_10x': {'start_e': 1.31027, 'stop_e': 43.01828, 'start_d': 46.02507, 'stop_d': 87.55085}, 
+        'photon_enc_dec_15x': {'start_e': 1.26719, 'stop_e': 39.84326, 'start_d': 42.85026, 'stop_d': 81.38094},
+    },
 
-def main():
+    'Os':{
+        ## Os (with sync)
+        'row' : 54,
+        'ascon128_enc_dec_1000x': {'start_e': 1.38023, 'stop_e': 29.11083, 'start_d': 31.93298, 'stop_d': 59.51844}, 
+        'ascon128Armv7_enc_dec_1000x': {'start_e': 1.28564, 'stop_e': 28.11030, 'start_d': 31.11579, 'stop_d': 57.81297}, 
+        'ascon128a_enc_dec_1000x': {'start_e': 1.30820, 'stop_e': 21.86800, 'start_d': 24.87548, 'stop_d': 45.48583},
+        'ascon128aArmv7_enc_dec_1000x': {'start_e': 1.46410, 'stop_e': 19.09462, 'start_d': 22.10305, 'stop_d': 39.71577},
+        'isapa128_enc_dec_500x': {'start_e': 0.66834, 'stop_e': 86.14700, 'start_d': 89.15498, 'stop_d': 174.64830},
+        'isapa128Armv7_enc_dec_500x': {'start_e': 1.47178, 'stop_e': 47.01213, 'start_d': 50.01704, 'stop_d': 95.59974},
+        'isapa128a_enc_dec_500x': {'start_e': 1.28150, 'stop_e': 74.92620, 'start_d': 77.93461, 'stop_d': 151.55463},
+        'isapa128aArmv7_enc_dec_500x': {'start_e': 1.38657, 'stop_e': 34.47951, 'start_d': 37.48394, 'stop_d': 70.58174},
+        'sparkle128_enc_dec_1000x': {'start_e': 1.40150, 'stop_e': 18.32346, 'start_d': 21.33160, 'stop_d': 39.01026},
+        'sparkle128Armv7_enc_dec_1000x': {'start_e': 1.31934, 'stop_e': 12.60383, 'start_d': 15.60876, 'stop_d': 26.92872},
+        'sparkle256_enc_dec_1000x': {'start_e': 1.43601, 'stop_e': 24.51053, 'start_d': 27.51840, 'stop_d': 51.51285}, 
+        'sparkle256Armv7_enc_dec_1000x': {'start_e': 1.23802, 'stop_e': 18.41306, 'start_d': 21.41884, 'stop_d': 38.55277},
+        'tinyjambu_enc_dec_1000x': {'start_e': 1.41110, 'stop_e':  46.64048, 'start_d': 49.65009, 'stop_d': 94.85015},
+        'tinyjambuOpt_enc_dec_1000x': {'start_e': 1.47501, 'stop_e': 27.72689, 'start_d': 30.73108, 'stop_d': 56.94882},
+        'giftc_enc_dec_200x':{'start_e': 1.44594, 'stop_e': 82.20315, 'start_d': 85.21073, 'stop_d': 165.98799},
+        'xoodyak_enc_dec_1000x': {'start_e': 1.38990, 'stop_e': 84.06259, 'start_d': 87.07055, 'stop_d': 169.67377}, 
+        'romulusn_enc_dec_50x': {'start_e': 1.40887, 'stop_e': 36.00575, 'start_d': 39.01242, 'stop_d': 73.67868},
+        'romulusnOpt_enc_dec_50x': {'start_e': 1.38247, 'stop_e': 6.10803, 'start_d': 9.11501, 'stop_d': 13.84141},
+        'eleph_enc_dec_10x': {'start_e': 1.32568, 'stop_e': 73.83440, 'start_d': 76.84218, 'stop_d': 149.35690},
+        'grain_enc_dec_10x': {'start_e': 1.27562, 'stop_e': 49.83802, 'start_d': 52.84632, 'stop_d': 101.17227},
+        'photon_enc_dec_15x': {'start_e': 1.00620, 'stop_e': 75.79236, 'start_d': 78.79877, 'stop_d': 153.61510},
+    }    
+}
+
+# data_obtained = False#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#False
+# energy_calc = False#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#FalseFalse#True#False#True#False
+# data_dir = "../Data/Power/python_plots/02_csv_dir/02_run2/O0/ascon128a2_enc_dec_1000x/"
+# output = "../Data/Power/python_plots/00_Output/02_run2/O0/ascon128a2_enc_dec_1000x.txt"
+# timestamps = {
+#     ### 'Random' second sets
+#     # 'photon2_enc_dec_15x': {'start_e': 0.78681, 'stop_e': 202.93627, 'start_d': 205.93713, 'stop_d': 407.90221},
+#     # 'ascon128a_ngnd_enc_dec_1000x': {'start_e': 0., 'stop_e': , 'start_d': , 'stop_d': }
+# }
+
+plot_all_bool = False
+# apps = ["ascon128_enc_dec_1000x", "ascon128Armv7_enc_dec_1000x", "ascon128a_enc_dec_1000x", "ascon128aArmv7_enc_dec_1000x"]
+# apps = ["isapa128_enc_dec_500x", "isapa128Armv7_enc_dec_500x", "isapa128a_enc_dec_500x", "isapa128aArmv7_enc_dec_500x", ]
+# apps = [ "sparkle128_enc_dec_1000x", "sparkle128Armv7_enc_dec_1000x", "sparkle256_enc_dec_1000x", "sparkle256Armv7_enc_dec_1000x"]
+# apps = ["tinyjambu_enc_dec_1000x", "tinyjambuOpt_enc_dec_1000x", "giftc_enc_dec_200x", "xoodyak_enc_dec_1000x",]
+# apps = [ "romulusn_enc_dec_50x" ,"eleph_enc_dec_10x"]
+# apps = [ "grain_enc_dec_10x", "photon_enc_dec_15x"]
+apps  = ["ascon128aArmv7_enc_dec_1000x", "romulusnOpt_enc_dec_50x"]
+def plot_all():
+    dfs = []
+    t = time.time()
+    for app in apps:
+        print("Reading ", app, apps.index(app))
+        data_dir = "../Data/Power/python_plots/02_csv_dir/02_run2/O2/" + app + "/"
+        files = os.listdir(data_dir)
+
+        # Filter out only CSV files
+        csv_files = [file for file in files if (file.endswith('.csv') and not "summary" in file)]
+        csv_files = natsorted(csv_files)
+
+        
+        for file_name in csv_files:
+            file_path = os.path.join(data_dir, file_name)
+            # Read the CSV file into a DataFrame
+            df = pd.read_csv(file_path, delimiter=';', names=[app + "x", app + "y"])
+            dfs.append(df)
+
+        # Concatenate all DataFrames into a single DataFrame ignore index HAS to be true
+        df = pd.concat(dfs, ignore_index=True)
+        # x_values[apps.index(app)] = df['x']/1e3
+        # y_values[apps.index(app)] = df['y']/1e6
+    print(time.time() - t)
+    for app in apps:
+        t = time.time()
+        x_values= df[app + 'x']/1e3
+        y_values = df[app + 'y']/1e6
+        # Plotting the graph
+        plt.plot(x_values, y_values, linestyle='-') 
+        # plt.figure()
+        plt.xlabel('Time (s)') 
+        plt.ylabel('Current (A)') 
+        plt.title(app) 
+        # plt.text(4.28073, 0.047, "Start of program", fontsize=12, ha='center', va='center', color='black')
+        plt.grid(True)
+        print(time.time() - t)
+        plt.show()
+
+def main(ts_dict):
     global x_start_e, x_stop_e, x_start_d, x_stop_d, n_loop, energy_e, energy_d
     global i_e_max, i_e_avg, i_e_min, i_d_max, i_d_avg, i_d_min, n_calibrated, t_calibrations
     global n_lcutoff_points, l_cut_off, n_hcutoff_points, h_cut_off, calibrated
@@ -56,7 +237,7 @@ def main():
     files = os.listdir(data_dir)
 
     # Filter out only CSV files
-    csv_files = [file for file in files if file.endswith('.csv')]
+    csv_files = [file for file in files if (file.endswith('.csv') and not "summary" in file)]
     csv_files = natsorted(csv_files)
     # print(csv_files)
 
@@ -74,11 +255,6 @@ def main():
     x_values = df['x']/1e3
     y_values = df['y']/1e6
     # print(x_values)
-
-    # Crop first 4 seconds if elephant
-    if data_dir== "../Data/Power/python_plots/eleph_enc_dec_10x/":
-        x_values = x_values[399999:]
-        y_values = y_values[399999:]
 
     # Check for calibrations
     n_calibrated = len(y_values[y_values>1])
@@ -149,7 +325,7 @@ def main():
         x_start_d = 0
         x_stop_d = 0
 
-        for app, data in timestamps.items():
+        for app, data in ts_dict.items():
             if app in data_dir:
                 x_start_e = data['start_e']
                 x_stop_e = data['stop_e']
@@ -234,7 +410,7 @@ def main():
         plt.plot(x_values, y_values, linestyle='-')  # You can customize the marker and linestyle as needed
         plt.xlabel('Time (s)')  # Replace 'X Axis Label' with your desired label
         plt.ylabel('Current (A)')  # Replace 'Y Axis Label' with your desired label
-        plt.title('Example of program start and end')  # Replace 'Title of the Graph' with your desired title
+        plt.title(data_dir[-15:])  # Replace 'Title of the Graph' with your desired title
 
 
         # plt.text(4.28073, 0.047, "Start of program", fontsize=12, ha='center', va='center', color='black')
@@ -257,15 +433,26 @@ def writexl(col, row):
         ws.cell(row=row, column=col, value=var)
     workbook.save("../Data/Data.xlsx")
 
-if data_obtained:
-    col = 3
-    row = 3
-    for app, data in timestamps.items():
-        data_dir = "../Data/Power/python_plots/02_csv_dir/" + app + "/"
-        output = "../Data/Power/python_plots/00_Output/" + app + ".txt"
-        print(app)
+if plot_all_bool:
+    plot_all()
+else:
+    if data_obtained:
+        t = time.time()
+        for opt, data in timestamps.items():
+            # print(opt, data)
+            col = 3
+            for app, values in data.items():
+                if not 'row' in app:
+                    print(app)
+                    data_dir = "../Data/Power/python_plots/02_csv_dir/02_run2/" + opt +"/" + app + "/"
+                    output = "../Data/Power/python_plots/00_Output/02_run2/" + opt +"/"  + app + ".txt"
+                    # print(app)
+                    main(data)
+                    writexl(col, row)
+                    col +=1
+                else:
+                    row = values
+                    # print("Row ", values)
+        print("Took: ", time.time() - t)
+    else: 
         main()
-        writexl(col, row)
-        col +=1
-else: 
-    main()
