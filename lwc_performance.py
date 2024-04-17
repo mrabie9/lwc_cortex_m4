@@ -1,42 +1,75 @@
 import serial
 import struct
-import sys
 import subprocess
 import os
 import time
 import signal
-import random
-import re
-from datetime import datetime
-import platform
-import logging
-import traceback
+import openpyxl as xl
+from enum import Enum
 
 # Get current directory
 wdir = os.getcwd()
 
-# App name 
-rebuild = 0
+# Options
+rebuild = False
+xlwrite = True
+# start_row = 14
+
+# Board details 
 board = "m4"
+
+if board == "m4":
+	xl_output = "Data/Data.xlsx"
+	serial_port =  "COM6" 
+elif board == "m7":
+	xl_output = "Data/Data_m7.xlsx"
+	serial_port =  "COM3" 	
+
+# App details
 algorithm = ''
-#algorithms = ["ascon128", "ascon128a", "elephant160v2", "giftcofb128v1", "grain128aeadv2", "isapa128av20", "isapa128v20", "photonbeetleaead128rate128v1", "romulusn", "schwaemm256128v2", "schwaemm256256v2", "tinyjambu", "xoodyak"]
+# algorithms = ["ascon128", "ascon128Armv7", "Ascon128a", "ascon128aArmv7",
+# 			  "Isapa128v20", "isapa128v20Armv7", "Isapa128av20", "isapa128av20Armv7",
+# 			  "schwaemm256128v2", "schwaemm256128v2Armv7", "schwaemm256256v2", "schwaemm256256v2Armv7",
+# 			  "TinyJambu", "tinyjambuOpt", "giftcofb128v1", "xoodyak", "romulusn", "romulusnOpt",
+# 			  "elephant160v2", "grain128aeadv2", "photonbeetleaead128rate128v1"]
 algorithms = ["ascon128"]
+opts = ["_O3", "_O2", "_Os", "_O0"]
+rows = [25, 14, 37, 3]
 data_size = "12kB"
 
-# Serial port
-serial_port =  "COM6"
-	
-#set the number of runs
-number_of_runs = 3
+class AUT_col(Enum):
+    ascon128 = 3
+    ascon128Armv7 = 4
+    ascon128a = 5
+    ascon128aArmv7 = 6
+    Isapa128v20 = 7
+    isapa128v20Armv7 = 8
+    Isapa128av20 = 9
+    isapa128av20Armv7 = 10
+    schwaemm256128v2 = 11
+    schwaemm256128v2Armv7 = 12
+    schwaemm256256v2 = 13
+    schwaemm256256v2Armv7 = 14
+    TinyJambu = 15
+    tinyjambuOpt = 16
+    giftcofb128v1 = 17
+    xoodyak = 18
+    romulusn = 19
+    romulusnOpt = 20
+    elephant160v2 = 21
+    grain128aeadv2 = 22
+    photonbeetleaead128rate128v1 = 23
+
+start_col = AUT_col.ascon128.value
 
 countdown_to_reset = 50
 
 # Application runtime timeout
 apprun = 120
 
-def start_board():
+def start_board(algorithm, opt):
 	global countdown_to_reset
-	prog_log = subprocess.run(wdir + "\openocd_" + board + ".sh " + algorithm, shell=True, capture_output=True, text=True) # TODO: review
+	prog_log = subprocess.run(wdir + "\openocd_" + board + ".sh " + algorithm + opt, shell=True, capture_output=True, text=True) # TODO: review
 	if "Error" in prog_log.stdout or "Error" in prog_log.stderr or "Failed" in prog_log.stdout or "Failed" in prog_log.stderr:
 		print(prog_log.stdout, '\n', prog_log.stderr)
 		os._exit(10)
@@ -56,6 +89,19 @@ def signal_handler(signum, frame):
 	print("Closed serial port")
 	print(quit)
 	os._exit(9)
+
+def writexl(values, col, row):
+    # open workbook
+    workbook = xl.load_workbook(xl_output)
+    ws = workbook['DWT - ' + board.upper()]
+
+    # Write the variable names to the first col
+    # for row, var in enumerate(variables, start=row):
+    #     ws.cell(row=row, column=col-1, value=var)
+    # row = row_start
+    for row, var in enumerate(values, start=row):
+        ws.cell(row=row, column=col, value=var)
+    workbook.save(xl_output)
 
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -146,7 +192,6 @@ def sync():
 	else:
 		return 0
 	
-
 try:
 	nucleo = serial.Serial(serial_port, 115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout = 5)
 except:
@@ -163,99 +208,99 @@ if rebuild:
 		print(rebuild_log.stdout, '\n', rebuild_log.stderr)
 		os._exit(10)
 
-filename = wdir + "\output_ver_" + board + "_" + data_size + ".txt"
-print(filename)
-f = open(filename, "w") # clear file first
-f.close()
-f = open(filename, "a")
-if f.closed:
-	print("File not open!!")
+# filename = wdir + "\Opt_" + board + "_" + data_size + ".txt"
+# print(filename)
+# f = open(filename, "w") # clear file first
+# f.close()
+# f = open(filename, "a")
+# if f.closed:
+# 	print("File not open!")
 
-for x in algorithms:
-	algorithm = x
-	start_board()
+col = start_col
 
-	print("Starting experiment")
-	campaign_start_time = time.time()
-
-	print(algorithm + " Runs: 0") #, end='\r')
-
-	# Main loop
-	crash = 0
-
-	try:
-		if countdown_to_reset == 0:
-			os._exit(10)
-
-		# Sync with app
-		if sync() == 1:
+for opt in opts:
+	start_row = rows[opts.index(opt)]
+	for algorithm in algorithms:
+		if 'O0' in opt and ('Armv7' or 'Opt') in algorithm:
 			continue
 		
-		# # Wait app run
-		nucleo.timeout = apprun
-		# time.sleep(.5)
-		nucleo.read(4)
-		nucleo.timeout = 2
+		start_board(algorithm, opt) # flash board
+		print("Starting experiment")
+		print(algorithm + opt + ":")
 
-		runtime_py = round(time.time() - campaign_start_time, 6)
-		nucleo.read(4)
-		if sync() == 1: # Sync with send_app_runtime
-			continue
-		
-		# nucleo.write(float_to_hex(0.0)) # Sync
-		runtime_e = nucleo.read(4)
-		if runtime_e == b'':
-			print("Comm error: Did not receive application runtime ", 1)
-			crash += 1
+		# Main loop
+		try:
+			if countdown_to_reset == 0:
+				os._exit(10)
+
+			# Sync with app
+			if sync() == 1:
+				continue
+			AUT_start_time = time.time()
+
+			## Wait for enc and dec to finish
+			nucleo.timeout = apprun
+			nucleo.read(4)
+			nucleo.timeout = 2
+
+			## Python timer
+			runtime_py = round(time.time() - AUT_start_time, 6)
+			print(runtime_py)
+			nucleo.read(4)
+
+			## Start collecting data from AUT
+			if sync() == 1:
+				continue
+			runtime_e = hex_to_float(nucleo.read(4))
+			if sync() == 1:
+				continue
+			runtime_d = hex_to_float(nucleo.read(4))
+			
+			# Get ouptput results
+			if sync() == 1:
+				continue
+			output_e = hex_to_double(nucleo.read(8))
+			if sync() == 1:
+				continue
+			output_d = hex_to_double(nucleo.read(8))
+
+			# Get error counter
+			if sync() == 1:
+				continue
+			sum = hex_to_uint32(nucleo.read(4))
+
+			## Print results
+			print("Runtime E: %f s" % runtime_e)
+			print("Runtime D: %f s" % runtime_d)		
+			print("Output E: ", output_e)
+			print("Output D: ", output_d)
+			print("Err Cnt:  ", sum)
+			print("Runtime Py: ", runtime_py , " s")
+			
+			## Write results to text file
+			# f.write(algorithm + ": \n")
+			# f.write("\tRuntime E:\t\t%f s\n\t" % runtime_e)
+			# f.write("Runtime D:\t\t%f s\n\t" % runtime_d)
+			# f.write("Output E:\t\t%.1f\n\t" % output_e)
+			# f.write("Output D:\t\t%.1f\n\t" % output_d)
+			# f.write("Err Cnt:\t\t%.1f\n\t" % sum)
+			# f.write("Runtime Py:\t\t" + str(runtime_py) + " s\n\n")
+
+			## Write to spreadsheet
+			if xlwrite: 
+				# find col number
+				for col in list(AUT_col):
+					if algorithm == col.name:
+						curr_col = col.value
+				values = [runtime_e, runtime_d, output_e,  output_d, sum, runtime_py]
+				writexl(values, curr_col, start_row)
+
+			countdown_to_reset = 5
+			time.sleep(.05)
+
+		except Exception as e:
+			print("Shouldnt be here->", e)
 			start_board()
 			continue
-		runtime_e = hex_to_float(runtime_e)
-		print("Runtime E: %f s" % runtime_e)
-		f.write(algorithm)
-		f.write(": \n")
-		f.write("\tRuntime E:\t\t%f s\n\t" % runtime_e)
 
-		if sync() == 1:
-			continue
-		
-		# nucleo.write(float_to_hex(0.0)) # Sync
-		runtime_d = nucleo.read(4)
-		runtime_d = hex_to_float(runtime_d)
-		print("Runtime D: %f s" % runtime_d)
-		f.write("Runtime D:\t\t%f s\n\t" % runtime_d)
-		
-		# Get ouptput results
-		# ~ time.sleep(.05)
-		if sync() == 1: # Sync with send_app_runtime (D)
-			continue
-		output_e = hex_to_double(nucleo.read(8))
-
-		if sync() == 1: # Sync with send_app_runtime (D)
-			continue
-		output_d = hex_to_double(nucleo.read(8))
-
-		if sync() == 1: # Sync with send_output
-			continue
-		sum = hex_to_uint32(nucleo.read(4))
-				
-		print("Output E: ", output_e)
-		print("Output D: ", output_d)
-		print("Err Cnt:  ", sum)
-		f.write("Output:\t\t\t%.1f\n\t" % output_e)
-		f.write("Err Cnt:\t\t%.1f\n\t" % sum)
-		countdown_to_reset = 5
-
-		time.sleep(.05)
-
-	except Exception as e:
-		print("Shouldnt be here->", e)
-		start_board()
-		continue
-	
-	print("Runtime Py: ", runtime_py , " s")
-	f.write("Runtime Py:\t\t")
-	f.write(str(runtime_py))
-	f.write(" s")
-	f.write("\n\n")
-# ~ time.sleep(2)
-f.close()
+# f.close()
