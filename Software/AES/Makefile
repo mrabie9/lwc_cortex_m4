@@ -54,7 +54,7 @@ disass: $(PROJ_NAME).elf
 	$(GDB) $^ -batch -ex 'disass /r $(FUNC)'
 
 clean:
-	rm -f $(BUILD_DIR)/$(PROJ_NAME).bin $(BUILD_DIR)/$(PROJ_NAME).hex $(BUILD_DIR)/$(PROJ_NAME).elf $(BUILD_DIR)/$(PROJ_NAME).o
+	rm -f $(BUILD_DIR)/$(PROJ_NAME)_Pwr.bin $(BUILD_DIR)/$(PROJ_NAME)_Pwr.hex $(BUILD_DIR)/$(PROJ_NAME)_Pwr.elf $(BUILD_DIR)/$(PROJ_NAME)_Pwr.o
 	
 $(PROJ_NAME).elf: $(SRC_FILES) 
 	$(CC) -O3 $(CFLAGS)  -o $(BUILD_DIR)/$@ $^ -DSTM32L496xx -Wl,--print-memory-usage

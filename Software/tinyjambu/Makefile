@@ -57,17 +57,17 @@ disass: $(PROJ_NAME).elf
 	$(GDB) $^ -batch -ex 'disass /r $(FUNC)'
 
 clean:
-	rm -f $(BUILD_DIR)/$(PROJ_NAME).bin $(BUILD_DIR)/$(PROJ_NAME).hex $(BUILD_DIR)/$(PROJ_NAME).elf $(BUILD_DIR)/$(PROJ_NAME).o
+	rm -f $(BUILD_DIR)/$(PROJ_NAME)_Pwr.bin $(BUILD_DIR)/$(PROJ_NAME)_Pwr.hex $(BUILD_DIR)/$(PROJ_NAME)_Pwr.elf $(BUILD_DIR)/$(PROJ_NAME)_Pwr.o
 
 $(PROJ_NAME).elf: $(SRC_FILES) 
-	$(CC) -O3 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_O3.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
-	$(CC) -O2 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_O2.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
-	$(CC) -Os $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_Os.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
-	$(CC) -O0 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_O0.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
-	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_O3.elf
-	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_O2.elf
-	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_Os.elf
-	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_O0.elf
+	$(CC) -O3 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_Pwr_O3.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	$(CC) -O2 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_Pwr_O2.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	$(CC) -Os $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_Pwr_Os.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	# $(CC) -O0 $(CFLAGS)  -o $(BUILD_DIR)/$(PROJ_NAME)_Pwr_O0.elf $^ -DSTM32L496xx -Wl,--print-memory-usage #-fstack-usage
+	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_Pwr_O3.elf
+	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_Pwr_O2.elf
+	$(SZ) $(BUILD_DIR)/$(PROJ_NAME)_Pwr_Os.elf
+	# $(SZ) $(BUILD_DIR)/$(PROJ_NAME)_Pwr_O0.elf
 	
 	
 assembly: 
