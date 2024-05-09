@@ -5,7 +5,7 @@ output_file=$filename.txt
 echo $output_file
 echo > $output_file # Overwrite once 
 
-for app in romulusnOpt; do
+for app in isapa128v20Armv7 tinyjambu romulusnOpt; do
 	echo "=============================== $app ===============================" >> $output_file
 	# echo "Cleaning $app"
 	make clean -C $wdir/"$app"

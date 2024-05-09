@@ -11,4 +11,5 @@ echo
 openocd -f C:/Git/lwc_cortex_m4/Board/board.cfg -f C:/Git/lwc_cortex_m4/Board/stm32l4discovery.cfg -c "program $wdir/$elf_file verify reset exit"
 
 echo
+
 #$SHELL #(prevent shell from auto closing)

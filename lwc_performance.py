@@ -13,17 +13,26 @@ wdir = os.getcwd()
 # Options
 rebuild = False
 xlwrite = True
+DWT_VAR = True
 # start_row = 14
 
 # Board details 
 board = "m4"
-
 if board == "m4":
-	xl_output = "Data/Data.xlsx"
+	if DWT_VAR:
+		xl_output = "Data/DWT_var_m4.xlsx"
+	else:
+		xl_output = "Data/Data.xlsx"
 	serial_port =  "COM6" 
 elif board == "m7":
 	xl_output = "Data/Data_m7.xlsx"
 	serial_port =  "COM3" 	
+elif board =="m33":
+	serial_port =  "COM7" 
+	if DWT_VAR:
+		xl_output = "Data/DWT_var.xlsx"
+	else:
+		xl_output = "Data/Data_m33.xlsx"
 
 # App details
 algorithm = ''
@@ -32,9 +41,9 @@ algorithm = ''
 # 			  "schwaemm256128v2", "schwaemm256128v2Armv7", "schwaemm256256v2", "schwaemm256256v2Armv7",
 # 			  "TinyJambu", "tinyjambuOpt", "giftcofb128v1", "xoodyak", "romulusn", "romulusnOpt",
 # 			  "elephant160v2", "grain128aeadv2", "photonbeetleaead128rate128v1"]
-algorithms = ["ascon128"]
-opts = ["_O3", "_O2", "_Os", "_O0"]
-rows = [25, 14, 37, 3]
+algorithms = ["ascon128", "ascon128Armv7"]#, "Ascon128a", "ascon128aArmv7"]
+opts = ["_O3", "_O2", "_Os"]
+rows = [25, 14, 37]
 data_size = "12kB"
 
 class AUT_col(Enum):
@@ -73,7 +82,7 @@ def start_board(algorithm, opt):
 	if "Error" in prog_log.stdout or "Error" in prog_log.stderr or "Failed" in prog_log.stdout or "Failed" in prog_log.stderr:
 		print(prog_log.stdout, '\n', prog_log.stderr)
 		os._exit(10)
-	print(prog_log.stdout, '\n', prog_log.stderr)
+	# print(prog_log.stdout, '\n', prog_log.stderr)
 	clearBuffer()
 	countdown_to_reset -= 1
 	time.sleep(.1)
@@ -162,10 +171,10 @@ def clearBuffer():
 
 	while (n_attempts <= max_n_attempts):
 		a = nucleo.read(4)
-		print("Attempting to clear buffer:")
-		print(a)
+		# print("Attempting to clear buffer:")
+		# print(a)
 		if (a == b''):
-			print("Serial buffer is clean")
+			# print("Serial buffer is clean")
 			break
 		n_attempts += 1
 
@@ -194,6 +203,7 @@ def sync():
 	
 try:
 	nucleo = serial.Serial(serial_port, 115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout = 5)
+	print(serial_port)
 except:
 	print("Problem opening serial port")
 	os._exit(16)
@@ -208,99 +218,104 @@ if rebuild:
 		print(rebuild_log.stdout, '\n', rebuild_log.stderr)
 		os._exit(10)
 
-# filename = wdir + "\Opt_" + board + "_" + data_size + ".txt"
-# print(filename)
-# f = open(filename, "w") # clear file first
-# f.close()
-# f = open(filename, "a")
-# if f.closed:
-# 	print("File not open!")
-
 col = start_col
 
-for opt in opts:
-	start_row = rows[opts.index(opt)]
-	for algorithm in algorithms:
-		if 'O0' in opt and ('Armv7' or 'Opt') in algorithm:
-			continue
+start = time.time()
+for algorithm in algorithms:
+	for opt in opts:
+		if DWT_VAR:
+			start_row = 2
+
+		else:
+			start_row = rows[opts.index(opt)]
+			col = start_col
+			if 'O0' in opt and ('Armv7' or 'Opt') in algorithm:
+				continue
 		
 		start_board(algorithm, opt) # flash board
-		print("Starting experiment")
-		print(algorithm + opt + ":")
+		print("Starting", algorithm + opt + ":")
 
-		# Main loop
-		try:
-			if countdown_to_reset == 0:
-				os._exit(10)
+		for i in range(20):
+			# Main loop
+			start_row +=1
+			try:
+				# if countdown_to_reset == 0:
+				# 	os._exit(10)
 
-			# Sync with app
-			if sync() == 1:
+				# Sync with app
+				if sync() == 1:
+					continue
+				AUT_start_time = time.time()
+
+				## Wait for enc and dec to finish
+				nucleo.timeout = apprun
+				nucleo.read(4)
+				nucleo.timeout = 2
+
+				## Python timer
+				runtime_py = round(time.time() - AUT_start_time, 6)
+				# print(runtime_py)
+				nucleo.read(4)
+
+				## Start collecting data from AUT
+				if sync() == 1:
+					continue
+				runtime_e = hex_to_float(nucleo.read(4))
+				if sync() == 1:
+					continue
+				runtime_d = hex_to_float(nucleo.read(4))
+				
+				# Get ouptput results
+				if sync() == 1:
+					continue
+				output_e = hex_to_double(nucleo.read(8))
+				if sync() == 1:
+					continue
+				output_d = hex_to_double(nucleo.read(8))
+
+				# Get error counter
+				if sync() == 1:
+					continue
+				sum = hex_to_uint32(nucleo.read(4))
+
+				## Print results
+				# print("Runtime E: %f s" % runtime_e)
+				# print("Runtime D: %f s" % runtime_d)		
+				# print("Output E: ", output_e)
+				# print("Output D: ", output_d)
+				# print("Err Cnt:  ", sum)
+				# print("Runtime Py: ", runtime_py , " s")
+				
+				## Write to spreadsheet
+				# values = [runtime_e, runtime_d, output_e,  output_d, sum, runtime_py]
+				values = [runtime_e + runtime_d]
+				if xlwrite: 
+					writexl_success = False
+					# find col number
+					if 'O0' in opt:
+						curr_col = start_col
+						writexl(values, curr_col, start_row)
+						writexl_success = True
+						curr_col += 1 
+					else:
+						for col in list(AUT_col):
+							if algorithm.lower() == col.name.lower():
+								if DWT_VAR:
+									curr_col = start_col +3*algorithms.index(algorithm) + opts.index(opt)
+								else:
+									curr_col = col.value
+								writexl(values, curr_col, start_row)
+								writexl_success = True
+								break
+					if not writexl_success:
+						print("Value not stored - col not found!")
+					
+
+				# countdown_to_reset = 5
+				time.sleep(.05)
+
+			except Exception as e:
+				print("Shouldnt be here->", e)
+				# start_board()
 				continue
-			AUT_start_time = time.time()
-
-			## Wait for enc and dec to finish
-			nucleo.timeout = apprun
-			nucleo.read(4)
-			nucleo.timeout = 2
-
-			## Python timer
-			runtime_py = round(time.time() - AUT_start_time, 6)
-			print(runtime_py)
-			nucleo.read(4)
-
-			## Start collecting data from AUT
-			if sync() == 1:
-				continue
-			runtime_e = hex_to_float(nucleo.read(4))
-			if sync() == 1:
-				continue
-			runtime_d = hex_to_float(nucleo.read(4))
-			
-			# Get ouptput results
-			if sync() == 1:
-				continue
-			output_e = hex_to_double(nucleo.read(8))
-			if sync() == 1:
-				continue
-			output_d = hex_to_double(nucleo.read(8))
-
-			# Get error counter
-			if sync() == 1:
-				continue
-			sum = hex_to_uint32(nucleo.read(4))
-
-			## Print results
-			print("Runtime E: %f s" % runtime_e)
-			print("Runtime D: %f s" % runtime_d)		
-			print("Output E: ", output_e)
-			print("Output D: ", output_d)
-			print("Err Cnt:  ", sum)
-			print("Runtime Py: ", runtime_py , " s")
-			
-			## Write results to text file
-			# f.write(algorithm + ": \n")
-			# f.write("\tRuntime E:\t\t%f s\n\t" % runtime_e)
-			# f.write("Runtime D:\t\t%f s\n\t" % runtime_d)
-			# f.write("Output E:\t\t%.1f\n\t" % output_e)
-			# f.write("Output D:\t\t%.1f\n\t" % output_d)
-			# f.write("Err Cnt:\t\t%.1f\n\t" % sum)
-			# f.write("Runtime Py:\t\t" + str(runtime_py) + " s\n\n")
-
-			## Write to spreadsheet
-			if xlwrite: 
-				# find col number
-				for col in list(AUT_col):
-					if algorithm == col.name:
-						curr_col = col.value
-				values = [runtime_e, runtime_d, output_e,  output_d, sum, runtime_py]
-				writexl(values, curr_col, start_row)
-
-			countdown_to_reset = 5
-			time.sleep(.05)
-
-		except Exception as e:
-			print("Shouldnt be here->", e)
-			start_board()
-			continue
-
-# f.close()
+print(round(time.time - start))
